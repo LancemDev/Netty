@@ -1,62 +1,54 @@
+from flask import Flask, request, send_file
 import requests
 from bs4 import BeautifulSoup
-import csv
+import pandas as pd
+import io
 
-# Read data from CSV
-with open('data.csv', 'r') as file:
-    reader = csv.DictReader(file)
-    data_list = list(reader)
+app = Flask(__name__)
 
-# Prepare the CSV writer for the results
-with open('results4.csv', 'w', newline='') as result_file:
-    writer = csv.writer(result_file)
-    writer.writerow(['indexNumber', 'name', 'student_name', 'school_name', 'mean_grade', 'subject_grades'])
+@app.route('/scrape', methods=['POST'])
+def scrape():
+    # Check if a file was uploaded
+    if 'file' not in request.files:
+        return 'No file uploaded', 400
 
-    # Loop through data
-    for data in data_list:
-        # Prepare data for the request
-        request_data = {'indexNumber': data['indexNumber'], 'name': data['name']}
-        headers = {
-                    "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                    "Accept-Language": "en-US,en;q=0.5",
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Origin": "http://results.knec.ac.ke",
-                    "Referer": "http://results.knec.ac.ke/",
-                    "Upgrade-Insecure-Requests": "1"
-                }
+    # Read the Excel file
+    file = request.files['file']
+    df = pd.read_excel(file)
 
-        # Send request to the form
-        response = requests.post('http://results.knec.ac.ke/Home/CheckResults', data=request_data, headers=headers)
+    # Your headers and URL
+    URL = "http://results.knec.ac.ke/Home/CheckResults"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Origin": "http://results.knec.ac.ke",
+        "Referer": "http://results.knec.ac.ke/",
+        "Upgrade-Insecure-Requests": "1"
+    }
 
-        # Print the status code and headers
-        print('Status code:', response.status_code)
-        print('Headers:', response.headers)
+    # Loop through the rows of the DataFrame and scrape data for each one
+    for index, row in df.iterrows():
+        data = {'indexNumber': row['indexNumber'], 'name': row['name']}  # replace with your actual column names
 
-        # Parse response HTML
-        soup = BeautifulSoup(response.text, 'html.parser')
+        # Send the request
+        r = requests.post(URL, headers=headers, data=data)
 
-        # Extract relevant information
-        name_and_grade = soup.find_all('th', style='border: transparent; padding-left: 0%; padding-top: 2px; padding-bottom: 2px;')
-        if name_and_grade:
-            student_name = name_and_grade[0].text
-            school_name = name_and_grade[1].text
-            mean_grade = name_and_grade[2].text.split(':')[-1].strip()
-        else:
-            student_name = school_name = mean_grade = 'No result found'
+        # Parse the response
+        soup = BeautifulSoup(r.content, 'html5lib')
 
-        # Extract grades for each subject
-        grades_table = soup.find('table', id='grid')
-        if grades_table:
-            rows = grades_table.find_all('tr')
-            grades = {}
-            for row in rows[1:]:  # Skip the header row
-                cols = row.find_all('td')
-                subject = cols[2].text
-                grade = cols[3].text
-                grades[subject] = grade
-        else:
-            grades = {'No result found': ''}
+        # Your scraping logic here...
+        # Add the scraped data to the DataFrame
 
-        # Save results to CSV
-        writer.writerow([data['indexNumber'], data['name'], student_name, school_name, mean_grade, grades])
+    # Save the DataFrame to an Excel file in memory
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer)
+
+    # Send the Excel file as a response
+    output.seek(0)
+    return send_file(output, attachment_filename='results.xlsx', as_attachment=True)
+
+if __name__ == '__main__':
+    app.run(debug=True)
