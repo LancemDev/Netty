@@ -8,7 +8,7 @@ with open('data.csv', 'r') as file:
     data_list = list(reader)
 
 # Prepare the CSV writer for the results
-with open('results4.csv', 'w', newline='') as result_file:
+with open('results6.csv', 'w', newline='') as result_file:
     writer = csv.writer(result_file)
     writer.writerow(['indexNumber', 'name', 'student_name', 'school_name', 'mean_grade', 'subject_grades'])
 
