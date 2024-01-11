@@ -32,6 +32,8 @@ def scrape():
         "Upgrade-Insecure-Requests": "1"
     }
 
+
+
     # Loop through the rows of the DataFrame and scrape data for each one
     for index, row in df.iterrows():
         data = {'indexNumber': row['indexNumber'], 'name': row['name']}  # replace with your actual column names
@@ -42,17 +44,42 @@ def scrape():
         # Parse the response
         soup = BeautifulSoup(r.content, 'html5lib')
 
-        # Your scraping logic here...
+        # Extract relevant information
+        name_and_grade = soup.find_all('th', style='border: transparent; padding-left: 0%; padding-top: 2px; padding-bottom: 2px;')
+        if name_and_grade:
+            student_name = name_and_grade[0].text
+            school_name = name_and_grade[1].text
+            mean_grade = name_and_grade[2].text.split(':')[-1].strip()
+        else:
+            student_name = school_name = mean_grade = 'No result found'
+
+        # Extract grades for each subject
+        grades_table = soup.find('table', id='grid')
+        if grades_table:
+            rows = grades_table.find_all('tr')
+            grades = {}
+            for row in rows[1:]:  # Skip the header row
+                cols = row.find_all('td')
+                subject = cols[2].text
+                grade = cols[3].text
+                grades[subject] = grade
+        else:
+            grades = {'No result found': ''}
+
+        # Save results to CSV
+        # writer.writerow([data['indexNumber'], data['name'], student_name, school_name, mean_grade, grades])
         # Add the scraped data to the DataFrame
+        df.loc[index, 'student_name'] = student_name
+        df.loc[index, 'school_name'] = school_name
+        df.loc[index, 'mean_grade'] = mean_grade
+        df.loc[index, 'subject_grades'] = str(grades)
+
 
     # Save the DataFrame to an Excel file in memory
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer)
+    # Save the DataFrame to an Excel file on disk
+    df.to_excel('results.xlsx')
 
     # Send the Excel file as a response
-    output.seek(0)
-    return send_file(output, attachment_filename='results.xlsx', as_attachment=True)
-
+    return send_file('results.xlsx', as_attachment=True, download_name='results.xlsx')
 if __name__ == '__main__':
     app.run(debug=True)

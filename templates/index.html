@@ -4,13 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Netty Site</title>
+    <link rel="stylesheet" href="../static/css/output.css">
 </head>
 <body>
-    <div>
-        <form action="/scrape" method="post" enctype="multipart/form-data">
-            Select your csv file here:
-            <input type="file" name="file" id="file">
-            <input type="submit" value="Upload">
+    <div class="flex items-center justify-center h-screen bg-gray-200">
+        <form action="/scrape" method="post" enctype="multipart/form-data" class="p-8 max-w-lg mx-auto bg-white rounded-xl shadow-md flex items-center space-x-4">
+            <div class="text-2xl font-bold mb-4 text-center">
+                Select your excel spreadsheet file here:
+            </div>
+            <div class="flex flex-col items-center justify-center space-y-4">
+                <input type="file" name="file" id="file" class="border-2 border-gray-300 p-2 w-full">
+                <input type="submit" value="Upload" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+            </div>
         </form>
     </div>
 </body>
