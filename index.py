@@ -65,3 +65,35 @@ with open('results6.csv', 'w', newline='') as result_file:
 
 
         
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
