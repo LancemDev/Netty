@@ -60,3 +60,40 @@ with open('results6.csv', 'w', newline='') as result_file:
 
         # Save results to CSV
         writer.writerow([data['indexNumber'], data['name'], student_name, school_name, mean_grade, grades])
+
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
