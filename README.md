@@ -34,7 +34,7 @@ npm install
 
 ```
 
-# If this brings an error like "This environment is externally managed", kindly create a virtual environment prior to the step above
+### If this brings an error like "This environment is externally managed", kindly create a virtual environment prior to the step above
 
 ## Running the Application
 1. Start the Flask Server
